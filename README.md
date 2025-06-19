@@ -1,4 +1,4 @@
-# 📲 Personal Expense Automation with N8N, PostgreSQL and OpenAI (Telegram Bot)
+# 📲 Controle de Gastos Pessoais com N8N, Telegram, PostgreSQL e Gemini AI
 
 Este projeto é uma automação de controle de gastos pessoais que conecta **Telegram**, **N8N**, **PostgreSQL (Supabase)** e **Google Gemini** para criar um sistema inteligente de registro e consulta de transações financeiras.
 
