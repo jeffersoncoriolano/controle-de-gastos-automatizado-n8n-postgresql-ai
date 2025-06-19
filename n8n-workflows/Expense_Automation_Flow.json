@@ -1,0 +1,647 @@
+{
+  "name": "Expense Automation Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "userIds": "1410019981"
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -880,
+        -80
+      ],
+      "id": "d34f83a9-4f9d-4073-ae16-d96cde4a5cb9",
+      "name": "Telegram Trigger",
+      "webhookId": "f18ea1be-351a-47b6-8f3f-26ff85674a71",
+      "credentials": {
+        "telegramApi": {
+          "id": "zeD5w9fr3KpWwpR4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um assistente de IA que recebe mensagens de texto contendo informações de gastos no cartão de crédito. Sua tarefa é extrair os seguintes campos e devolver apenas um JSON com esses campos:\n\ndata: Data da transação (formato YYYY-MM-DD)\n\nvalor: Valor numérico (decimal com ponto, ex: 44.90)\n\ndescricao: Nome do estabelecimento ou serviço\n\nparcela_total: Quantidade total de parcelas, se for uma compra parcelada (ex: 2). Se for à vista, deixe em branco.\n\ncategoria: Nome exato de uma das categorias ou subcategorias listadas abaixo.\n\nImportante:\nSempre classifique usando a categoria mais específica possível (ou seja, use a subcategoria se houver correspondência).\nSe não conseguir identificar a subcategoria, use a categoria principal relacionada.\nSe não houver nenhuma correspondência segura, use \"Outros\".\n\nLembre-se que as categorias estão relacionadas com as subcategorias. As que tem id_categoria_pai nula, são as principais, as que tem são subcategorias relacionadas as categorias principais. Lista oficial de categorias da tabela:\n\nid, nome, id_categoria_pai\n1\t\"Alimentacao\"\t\n2\t\"Transporte\"\t\n3\t\"Lazer\"\t\n4\t\"Saude\"\t\n5\t\"Casa\"\t\n6\t\"Assinaturas / Servicos\"\t\n7\t\"Roupas / Calcados\"\t\n8\t\"Presentes / Variados\"\t\n9\t\"Educacao\"\t\n10\t\"Cuidado Pessoal\"\t\n11\t\"Lojas Online\"\t\n12\t\"Outros\"\t\n13\t\"Supermercado\"\t1\n14\t\"Hortifruti\"\t1\n15\t\"Restaurantes\"\t1\n16\t\"Padaria\"\t1\n17\t\"Doces e Sorvetes\"\t1\n18\t\"Delivery\"\t1\n19\t\"Lanches\"\t1\n20\t\"Combustivel / Posto\"\t2\n21\t\"Apps de Transporte\"\t2\n22\t\"Estacionamento / Pedagio\"\t2\n23\t\"Manutençao\"\t2\n24\t\"Aluguel de Carro\"\t2\n25\t\"Cinema / Streaming\"\t3\n26\t\"Bares / Baladas\"\t3\n27\t\"Viagens / Turismo\"\t3\n28\t\"Parques / Passeios\"\t3\n29\t\"Farmacia\"\t4\n30\t\"Clinicas\"\t4\n31\t\"Exames / Consultas\"\t4\n32\t\"Academia\"\t4\n33\t\"Jiujitsu\"\t4\n34\t\"Contas\"\t5\n35\t\"Moveis / Decoracao\"\t5\n36\t\"Material de construcao\"\t5\n37\t\"Apps / Nuvem\"\t6\n38\t\"Streaming\"\t6\n39\t\"Servicos Online\"\t6\n40\t\"Moda Masculina\"\t7\n41\t\"Moda Feminina\"\t7\n42\t\"Moda Infantil\"\t7\n43\t\"Uniforme\"\t7\n44\t\"Presentes\"\t8\n45\t\"Cosmeticos / Perfumaria\"\t8\n46\t\"Bijuterias / Acessorios\"\t8\n47\t\"Papelaria\"\t8\n\nExemplo de entrada:\n\"BRADESCO CARTOES: COMPRA APROVADA NO CARTAO FINAL 5652 EM 14/06/2025 13:20. VALOR DE R$ 69,90 parc=102 BIG FARMA MACAE.\"\n\nExemplo de saída:\n\n{\n  \"data\": \"2025-06-14\",\n  \"valor\": 69.90,\n  \"descricao\": \"BIG FARMA\",\n  \"parcela_total\": 2,\n  \"categoria\": 29\n}\n\nExemplo de entrada sem parcela e com classificação genérica:\n\"BRADESCO CARTOES: COMPRA APROVADA NO CARTAO FINAL 5652 EM 15/06/2025 12:00. VALOR DE R$ 120,00 AMERICANAS.COM\"\n\nExemplo de saída:\n\n{\n  \"data\": \"2025-06-15\",\n  \"valor\": 120.00,\n  \"descricao\": \"AMERICANAS.COM\",\n  \"parcela_total\": \"\",\n  \"categoria\": 11\n}\n\nIgnore sempre o nome da cidade no final, que indica somente onde a transação foi feita, por exemplo MACAE, Osasco, SAO PAULO, etc.\n\nFaça isso pro seguinte texto: {{ $json.message.text }}. Apenas retorne o JSON, sem explicações.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        180
+      ],
+      "id": "5e91a38a-a687-4124-bea1-b4cfac3920cb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        400
+      ],
+      "id": "9ce51345-0870-48f9-8432-00838420226d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2646a9df-5f58-4d51-96ee-542fa7294263",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -660,
+        -80
+      ],
+      "id": "b886c80b-5013-4ea5-be4b-a5874fa17151",
+      "name": "If",
+      "notesInFlow": true,
+      "notes": "É texto?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Transação já cadastrada.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1140,
+        280
+      ],
+      "id": "a70e95a0-bed8-43e5-a908-e8edf1c74739",
+      "name": "Telegram",
+      "webhookId": "598dc447-fe9c-4443-b943-076be2a992da",
+      "credentials": {
+        "telegramApi": {
+          "id": "zeD5w9fr3KpWwpR4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM public.transacao\nWHERE data = $1\nAND valor = $2\nAND descricao = $3;\n",
+        "options": {
+          "queryReplacement": "=[   {{$json[\"data\"]}},   {{$json[\"valor\"]}},   {{$json[\"descricao\"]}} ]"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        620,
+        180
+      ],
+      "id": "f1ac775e-2b8a-4d29-b640-3f8672ef3ee2",
+      "name": "Postgres",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "credentials": {
+        "postgres": {
+          "id": "shbsEm2jf77QQYy1",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import re\nimport json\n\n# Entrada do node anterior\ntexto = items[0]['json']['output']\n\njson_match = re.search(r\"\\{[\\s\\S]*?\\}\", texto)\n\n# Converter a string JSON em um dict Python\n\ndados = json.loads(json_match.group(0))\n\n# Retornar os dados em um único JSON\nreturn [{\n  \"json\": {\n    \"data\": dados.get(\"data\", \"\"),\n    \"valor\": dados.get(\"valor\", \"\"),\n    \"descricao\": dados.get(\"descricao\", \"\"),\n    \"parcela_total\": dados.get(\"parcela_total\", \"\"),\n    \"categoria\": dados.get(\"categoria\", \"\"),\n  }\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        180
+      ],
+      "id": "9a63c5a0-c7d5-44aa-8784-1212085ae98e",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ae434cfe-5d8d-45ab-9164-644f7bb025e3",
+              "leftValue": "={{ $json[\"id\"] }}",
+              "rightValue": "=0",
+              "operator": {
+                "type": "number",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        920,
+        180
+      ],
+      "id": "99935087-e3fa-4e36-9b96-59105dc6ce3c",
+      "name": "If1",
+      "notesInFlow": true,
+      "notes": "A transação é nova?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $('Code').first().json;\n\nconst dataOriginal = new Date(dados.data);\nconst valor = parseFloat(dados.valor);\nconst descricao = dados.descricao;\nconst categoriaId = parseInt(dados.categoria);\nconst totalParcelas = dados.parcela_total ? parseInt(dados.parcela_total) : 1;\n\nconst resultados = [];\n\nfor (let i = 0; i < totalParcelas; i++) {\n  const novaData = new Date(dataOriginal);\n  novaData.setMonth(novaData.getMonth() + i);\n\n  resultados.push({\n    json: {\n      data: novaData.toISOString().slice(0, 10),\n      valor: valor,\n      descricao: descricao,\n      parcela_atual: totalParcelas > 1 ? i + 1 : null,\n      parcela_total: totalParcelas > 1 ? totalParcelas : null,\n      id_categoria: categoriaId\n    }\n  });\n}\n\nreturn resultados;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        80
+      ],
+      "id": "4fc8e58d-dc43-4cd0-a003-602181460294",
+      "name": "Code1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO public.transacao (data, valor, descricao, parcela_atual, parcela_total, id_categoria)\nVALUES ($1, $2, $3, $4, $5, $6);\n",
+        "options": {
+          "queryReplacement": "=[   {{$json[\"data\"]}},   {{$json[\"valor\"]}},   {{$json[\"descricao\"]}},   {{$json[\"parcela_atual\"]}},   {{$json[\"parcela_total\"]}},   {{$json[\"id_categoria\"]}} ]"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1360,
+        80
+      ],
+      "id": "f5ce68fd-eb68-4476-9769-f4310c312fa9",
+      "name": "Postgres1",
+      "credentials": {
+        "postgres": {
+          "id": "shbsEm2jf77QQYy1",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "✅ Transação registrada com sucesso!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1580,
+        80
+      ],
+      "id": "33e0af7a-f75e-410f-91a3-b5cc52fec16c",
+      "name": "Telegram2",
+      "webhookId": "598dc447-fe9c-4443-b943-076be2a992da",
+      "credentials": {
+        "telegramApi": {
+          "id": "zeD5w9fr3KpWwpR4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2646a9df-5f58-4d51-96ee-542fa7294263",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "?",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -260,
+        -100
+      ],
+      "id": "230be634-f50b-4d81-84d8-1865811d6744",
+      "name": "If2",
+      "notesInFlow": true,
+      "notes": "É pergunta?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        932,
+        -300
+      ],
+      "id": "5ce7797b-fc6f-4cb4-bb7c-a36cdc84b016",
+      "name": "Telegram3",
+      "webhookId": "598dc447-fe9c-4443-b943-076be2a992da",
+      "credentials": {
+        "telegramApi": {
+          "id": "zeD5w9fr3KpWwpR4",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um assistente SQL que recebe perguntas em linguagem natural sobre gastos financeiros.\n\nSeu único objetivo é transformar a pergunta do usuário em uma consulta SQL (PostgreSQL) válida e sua resposta deve conter apenas a query sem qualquer explicação ou sem qualquer texto extra, somente texto simples corrido contendo a consulta.\n\nPara estruturar a consulta, considere que esta deve ser feita exclusivamente sobre a tabela public.transacao, que tem a seguinte estrutura:\n\nid (serial, chave primária)\n\ndata (tipo: date, data da transação)\n\nvalor (tipo: decimal, valor da transação)\n\ndescricao (tipo: texto, nome do estabelecimento)\n\nparcela_atual (tipo: integer, número da parcela atual)\n\nparcela_total (tipo: integer, total de parcelas)\n\nid_categoria (tipo: integer, chave estrangeira para a tabela categoria)\n\nA tabela de categorias contém:\n\nid (inteiro)\n\nnome (texto)\n\nRegras obrigatórias:\nSua resposta deve conter apenas o texto da consulta SQL, sem qualquer explicação ou sem qualquer caractere, enter ou caracteres como \"\\n\" nem nada do tipo.\n\nSe o usuário não especificar o ano, assuma o ano desta data: {{ $today }}\n\nSe a pergunta for sobre soma de gastos, sempre utilize:\n\nSELECT COALESCE(SUM(valor), 0) AS total FROM public.transacao WHERE ...;\n\nPara perguntas com datas relativas (ex: \"semana passada\", \"última semana de maio\", etc), calcule as datas exatas dentro da query, usando funções de data do PostgreSQL como DATE_TRUNC, CURRENT_DATE, INTERVAL, ou datas fixas se especificadas.\n\nPeríodos semanais dentro de um mês (ex: \"segunda semana de maio\"):\n\nDivida o mês assim:\n\n1ª semana: dia 1 a 7\n\n2ª semana: dia 8 a 14\n\n3ª semana: dia 15 a 21\n\n4ª semana: dia 22 a 28\n\n5ª semana: dia 29 ao final do mês\n\nSempre filtre por mês e ano juntos. Exemplo:\n\nWHERE EXTRACT(MONTH FROM data) = 5 AND EXTRACT(YEAR FROM data) = 2025;\n\nSe o usuário perguntar por um intervalo de datas (ex: \"de 1 a 15 de maio\"), use:\n\nWHERE data BETWEEN '2025-05-01' AND '2025-05-15';\nAjuste as datas de acordo com o ano citado ou o ano atual.\n\nPerguntas por categoria:\nSe o usuário perguntar por uma categoria (ex: gasolina, farmácia), faça JOIN com a tabela categoria, filtrando por c.nome com ILIKE (busca textual parcial). Exemplo:\n\nSELECT COALESCE(SUM(t.valor), 0) AS total FROM public.transacao t\nJOIN public.categoria c ON t.id_categoria = c.id\nWHERE c.nome ILIKE '%gasolina%'\nAND EXTRACT(MONTH FROM t.data) = 5\nAND EXTRACT(YEAR FROM t.data) = 2025;\n\nAo gerar a query, sempre garanta que não exista nenhum texto extra, nem caractere de escape como \"\\n\", nem nada do tipo, apenas o texto simples e corrido.\n\nGaranta também que haja pelo menos um filtro de data (data exata, intervalo, mês e ano, ou período relativo) para evitar retornos de todos os registros da tabela.\n\nConsiderando tudo isto, faça para a seguinte mensagem: {{ $json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        -400
+      ],
+      "id": "9b48d757-b383-42b6-a5ab-f9383bee918c",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        336,
+        -300
+      ],
+      "id": "737e2783-8821-4fbc-afcb-0063c9fe2a35",
+      "name": "Postgres2",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "credentials": {
+        "postgres": {
+          "id": "shbsEm2jf77QQYy1",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um assistente de finanças pessoais.\nSua função é transformar os resultados numéricos de consultas SQL em mensagens amigáveis, curtas e claras para o usuário de um chatbot no Telegram.\n\nReceba o valor total gasto (exemplo: R$ 5947.43) e a pergunta original feita pelo usuário.\n\nFormate a resposta como uma frase humana.\nExemplo:\n\nSe o usuário perguntou: \"Quanto gastei em maio de 2025?\", e o resultado foi 5947.43, responda algo como:\n\"Você gastou um total de R$ 5.947,43 em maio de 2025.\"\n\nRegras:\n\nSempre mencione o valor com símbolo de Real (R$), e com vírgula para casas decimais.\n\nTente incluir o período (mês ou data) se conseguir inferir pela pergunta original.\n\nNunca inclua código SQL ou termos técnicos.\n\nPergunta original do usuário: {{ $('If2').item.json.message.text }}\nConsulta SQL realizada: {{ $('AI Agent1').item.json.output }}\nResultado da consulta SQL: {{ $json.total }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        556,
+        -400
+      ],
+      "id": "f066a327-4ca5-4a29-b76f-2cff6f3237f9",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -180
+      ],
+      "id": "c01d620a-5a5d-4325-be7b-30ee72b6ea82",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "h31D6qhV00RoyMaH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        644,
+        -180
+      ],
+      "id": "a1be63bc-5ee8-473e-8687-31727c89531f",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "h31D6qhV00RoyMaH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        400
+      ],
+      "id": "4f0dd048-563d-4419-a790-0e36c196f888",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "h31D6qhV00RoyMaH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Melhoria futura \n- Montar fluxo para leitura OCR de texto em imagens ou transcrição de áudios.",
+        "height": 120,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -540,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "ae2db993-79a0-4b58-be6c-7f2ccb757abf",
+      "name": "Sticky Note",
+      "disabled": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        []
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Postgres2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres2": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "62640743-39ae-4cdb-9dea-75393afe1955",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7be0d496e2cd240398464c9fd044adae81b7f5aef07db30dbd7c51edc53f9505"
+  },
+  "id": "bmJTELdX5uRVFYL9",
+  "tags": []
+}
