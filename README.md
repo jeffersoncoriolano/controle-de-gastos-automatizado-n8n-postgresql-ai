@@ -9,7 +9,7 @@ Registrar automaticamente gastos via Telegram, utilizando IA para interpretar me
 
 ---
 
-## 🧰 Tecnologias utilizadas
+## ⚙️ Tecnologias utilizadas
 
 - **N8N Cloud** – Automação de workflows
 - **Supabase (PostgreSQL)** – Banco de dados relacional
@@ -19,7 +19,7 @@ Registrar automaticamente gastos via Telegram, utilizando IA para interpretar me
 
 ---
 
-## 📡 Arquitetura do Fluxo
+## 🖥️ Arquitetura do Fluxo
 
 ![image](https://github.com/user-attachments/assets/ec9f60ba-6b86-4d63-b50b-a79a31fd1d94)
 
@@ -86,7 +86,7 @@ Registrar automaticamente gastos via Telegram, utilizando IA para interpretar me
 
 ---
 
-## 🤓 Motivação pessoal
+## 💸💸 Motivação pessoal
 
 Este projeto surgiu de uma necessidade real de controlar meus próprios gastos de cartão de crédito de forma prática, usando ferramentas de automação e IA. Além de resolver um problema do dia a dia, se tornou uma oportunidade de aplicar conceitos de **engenharia de dados**, **automação de processos** e **integração com IA**.
 
